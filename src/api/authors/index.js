@@ -8,7 +8,7 @@ import { generateAccessToken } from '../../auth/tools.js'
 
 const authorsRouter = express.Router()
 
-authorsRouter.get('/', basicAuthMiddleware, async (req, res, next) => {
+authorsRouter.get('/', JWTAuthMiddleware, async (req, res, next) => {
   try {
     const authors = await AuthorsModel.find()
     res.send(authors)
@@ -17,7 +17,7 @@ authorsRouter.get('/', basicAuthMiddleware, async (req, res, next) => {
     next(error)
   }
 })
-authorsRouter.get('/:id', basicAuthMiddleware, async (req, res, next) => {
+authorsRouter.get('/:id', JWTAuthMiddleware, async (req, res, next) => {
   try {
     const author = await AuthorsModel.findById(req.params.id)
     if (!author)
@@ -28,7 +28,7 @@ authorsRouter.get('/:id', basicAuthMiddleware, async (req, res, next) => {
     next(error)
   }
 })
-authorsRouter.post('/', basicAuthMiddleware, async (req, res, next) => {
+authorsRouter.post('/', JWTAuthMiddleware, async (req, res, next) => {
   try {
     const newAuthor = new AuthorsModel(req.body)
     const { _id } = await newAuthor.save()
@@ -38,7 +38,7 @@ authorsRouter.post('/', basicAuthMiddleware, async (req, res, next) => {
     next(error)
   }
 })
-authorsRouter.put('/:id', basicAuthMiddleware, async (req, res, next) => {
+authorsRouter.put('/:id', JWTAuthMiddleware, async (req, res, next) => {
   try {
     const updatedAuthor = await AuthorsModel.findByIdAndUpdate(req.params.id, req.body, {
       validation: true,
@@ -52,7 +52,7 @@ authorsRouter.put('/:id', basicAuthMiddleware, async (req, res, next) => {
     next(error)
   }
 })
-authorsRouter.delete('/:id', basicAuthMiddleware, async (req, res, next) => {
+authorsRouter.delete('/:id', JWTAuthMiddleware, async (req, res, next) => {
   try {
     const deletedAuthor = await AuthorsModel.findByIdAndDelete(req.params.id)
     if (!deletedAuthor)
@@ -65,12 +65,28 @@ authorsRouter.delete('/:id', basicAuthMiddleware, async (req, res, next) => {
 })
 authorsRouter.post('/register', async (req, res, next) => {
   try {
-    const token = await generateAccessToken({ _id: req.body._id })
+    const newAuthor = new AuthorsModel(req.body)
+    const { _id } = await newAuthor.save()
+    res.send({ _id })
+  } catch (error) {
+    console.log(error)
+    next(error)
+  }
+})
 
-    const newAuthor = new AuthorsModel(...req.body, token)
-    const fullAuthor = await newAuthor.save()
-    console.log(newAuthor)
-    res.send(fullAuthor)
+authorsRouter.post('/login', async (req, res, next) => {
+  try {
+    const { email, password } = req.body
+    const author = await AuthorsModel.checkCredentials(email, password)
+    if (author) {
+      const accessToken = await generateAccessToken({
+        _id: author._id,
+        role: author.role
+      })
+      res.send({ accessToken })
+    } else {
+      next(createError(401, 'Credentials are not ok'))
+    }
   } catch (error) {
     console.log(error)
     next(error)

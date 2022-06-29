@@ -3,10 +3,10 @@ import { verifyAccessToken } from './tools.js'
 
 export const JWTAuthMiddleware = async (req, res, next) => {
   if (!req.headers.authorization) {
-    return createHttpError(401, 'No credentials added')
+    return createHttpError(401, 'You must register')
   } else {
     try {
-      const token = req.headers.authorization.replace('Bearer ', '')
+      const token = req.headers.authorization.split(' ')[2]
       const payload = verifyAccessToken(token)
 
       req.author = {

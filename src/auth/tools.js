@@ -11,11 +11,13 @@ export const generateAccessToken = (payload) =>
     })
   )
 
-export const verifyAccessToken = (token) => {
-  new Promise((res, rej) => {
+export const verifyAccessToken = (token) =>
+  new Promise((res, rej) =>
     jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
-      if (err) rej(err)
-      else res(payload)
+      if (err) {
+        rej(err)
+      } else {
+        res(payload)
+      }
     })
-  })
-}
+  )
