@@ -11,7 +11,7 @@ export const basicAuthMiddleware = async (req, res, next) => {
       const base64Credentials = req.headers.authorization.split(' ')[1]
       const [email, password] = atob(base64Credentials).split(':')
 
-      const author = await AuthorsModel.checkCredentials(email, password)
+      const author = await AuthorsModel.checkCredentials(userName, password)
 
       if (author) {
         req.author = author

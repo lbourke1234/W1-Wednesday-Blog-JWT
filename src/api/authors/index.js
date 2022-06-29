@@ -3,6 +3,9 @@ import createError from 'http-errors'
 import AuthorsModel from './model.js'
 import { basicAuthMiddleware } from '../../auth/basic.js'
 
+import { JWTAuthMiddleware } from '../../auth/token.js'
+import { generateAccessToken } from '../../auth/tools.js'
+
 const authorsRouter = express.Router()
 
 authorsRouter.get('/', basicAuthMiddleware, async (req, res, next) => {
@@ -55,6 +58,19 @@ authorsRouter.delete('/:id', basicAuthMiddleware, async (req, res, next) => {
     if (!deletedAuthor)
       return createError(404, `Author with id ${req.params.id} not found!`)
     res.send()
+  } catch (error) {
+    console.log(error)
+    next(error)
+  }
+})
+authorsRouter.post('/register', async (req, res, next) => {
+  try {
+    const token = await generateAccessToken({ _id: req.body._id })
+
+    const newAuthor = new AuthorsModel(...req.body, token)
+    const fullAuthor = await newAuthor.save()
+    console.log(newAuthor)
+    res.send(fullAuthor)
   } catch (error) {
     console.log(error)
     next(error)

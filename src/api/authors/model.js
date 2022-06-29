@@ -7,9 +7,10 @@ const AuthorSchema = new Schema(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    email: { type: String, required: true },
+    userName: { type: String, required: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ['User', 'Admin'], default: 'User' }
+    role: { type: String, enum: ['User', 'Admin'], default: 'User' },
+    token: { type: String }
   },
   { timestamps: true }
 )
@@ -36,8 +37,8 @@ AuthorSchema.methods.toJSON = function () {
   return authorObject
 }
 
-AuthorSchema.static('checkCredentials', async function (email, plainPW) {
-  const author = await this.findOne({ email })
+AuthorSchema.static('checkCredentials', async function (userName, plainPW) {
+  const author = await this.findOne({ userName })
 
   if (author) {
     const isMatch = await bcrypt.compare(plainPW, author.password)
