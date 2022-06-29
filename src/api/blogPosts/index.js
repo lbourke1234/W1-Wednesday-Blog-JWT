@@ -6,20 +6,29 @@ import createError from 'http-errors'
 import q2m from 'query-to-mongo'
 
 import { basicAuthMiddleware } from '../../auth/basic.js'
+import { JWTAuthMiddleware } from '../../auth/token.js'
 
 const blogPostsRouter = express.Router()
 
-blogPostsRouter.get('/', async (req, res, next) => {
+blogPostsRouter.get('/', JWTAuthMiddleware, async (req, res, next) => {
   try {
-    const mongoQuery = q2m(req.query)
-    const { total, blogPosts } = await BlogPostsModel.findBlogPostsWithAuthors(mongoQuery)
-    res.send({
-      links: mongoQuery.links('http://localhost:5001/blogPosts', total),
-      total,
-      totalPages: Math.ceil(total / mongoQuery.options.limit),
-      blogPosts
-    })
+    // const author = await AuthorsModel.findById(req.author._id)
+
+    const articles = await BlogPostsModel.find({ authors: req.author._id })
+    console.log('articles: ', articles)
+
+    res.send(articles)
+
+    // const mongoQuery = q2m(req.query)
+    // const { total, blogPosts } = await BlogPostsModel.findBlogPostsWithAuthors(mongoQuery)
+    // res.send({
+    //   links: mongoQuery.links('http://localhost:5001/blogPosts', total),
+    //   total,
+    //   totalPages: Math.ceil(total / mongoQuery.options.limit),
+    //   blogPosts
+    // })
   } catch (error) {
+    console.log(error)
     next(error)
   }
 })
